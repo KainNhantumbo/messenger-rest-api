@@ -1,12 +1,12 @@
-import { Application } from 'express';
+import { Server } from 'http';
 import db from '../database/connection';
 
 export default class Bootstrap {
-	private readonly app: Application;
+	private readonly app: Server;
 	private readonly db_uri: string;
 	private readonly PORT: string | number;
 
-	constructor(app: Application, PORT: string | number, db_uri: string) {
+	constructor(app: Server, PORT: string | number, db_uri: string) {
 		this.app = app;
 		this.db_uri = db_uri;
 		this.PORT = PORT;
