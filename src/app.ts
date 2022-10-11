@@ -40,12 +40,23 @@ app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 
-//error
+//errors
 
 //functions
-io.on('connection', (socket)=> {
-  console.log(`Socket ready ${socket._onconnect}`)
-})
+io.on('connection', (socket) => {
+	console.log(`Socket ready ${socket.id}`);
+	socket.on('send-message', (data) => {
+		console.log('message received', data);
+	});
+
+	socket.on('disconnect', () => {
+		console.log('User disconnected.');
+	});
+
+	socket.on('typing', () => {
+		socket.broadcast.emit('server-typing');
+	});
+});
 
 // server init
 const server = new Bootstrap(httpServer, PORT, process.env.MONGO_URI || '');
