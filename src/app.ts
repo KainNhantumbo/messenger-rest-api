@@ -1,5 +1,4 @@
 import express, { Application } from 'express';
-import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit';
 import cors, { CorsOptions } from 'cors';
 import { config } from 'dotenv';
 import { Server } from 'socket.io';
@@ -7,6 +6,8 @@ import Bootstrap from './utils/server';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import http from 'http';
+import globalErrorHandler from './middlewares/global-error-handler';
+import rateLimiter from './config/rate-limit';
 
 //server configuration
 config(); // loads environment variables
@@ -20,13 +21,6 @@ const io = new Server(httpServer, {
 	cors: { origin: corsDomains, credentials: true },
 });
 
-const limiter: RateLimitRequestHandler = rateLimit({
-	windowMs: 10 * 60 * 1000,
-	max: 1200,
-	standardHeaders: true,
-	legacyHeaders: false,
-});
-
 const cors_options: CorsOptions = {
 	origin: corsDomains,
 	// methods: ['GET', 'POST', 'DELETE', 'PATCH'],
@@ -35,12 +29,11 @@ const cors_options: CorsOptions = {
 
 // middlewares
 app.use(cors(cors_options));
-app.use(limiter);
+app.use(rateLimiter);
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 
-//errors
 
 //functions
 io.on('connection', (socket) => {
@@ -57,6 +50,9 @@ io.on('connection', (socket) => {
 		socket.broadcast.emit('server-typing');
 	});
 });
+
+// errors
+app.use(globalErrorHandler)
 
 // server init
 const server = new Bootstrap(httpServer, PORT, process.env.MONGO_URI || '');
