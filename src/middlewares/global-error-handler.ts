@@ -22,7 +22,7 @@ export default function globalErrorHandler(
   req: IReq,
   res: IRes,
   next: INext
-) {
+): IRes<any, Record<string, any>> | undefined {
   if (error instanceof GenericError) return genericErrorHandler(error, res);
 
   if (error.name == 'MongoServerError') {
