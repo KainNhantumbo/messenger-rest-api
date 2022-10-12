@@ -1,4 +1,3 @@
-
 export default class GenericError extends Error {
   public readonly message: string;
   public readonly statusCode: number;
