@@ -1,9 +1,12 @@
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
+import { VerifyErrors, VerifyCallback } from 'jsonwebtoken';
 import { Request as IReq, Response as IRes } from 'express';
 import { createToken, verifyToken } from '../utils/jwt-helpers';
 import GenericError from '../error/base-error';
 import UserModel from '../models/User';
 import { config } from 'dotenv';
+import asyncWrapper from '../utils/async-wrapper';
 
 config(); // loads environment variables
 
@@ -47,13 +50,34 @@ const login = async (req: IReq, res: IRes): Promise<void> => {
     .json({ accessToken });
 };
 
-const refresh = async (req: IReq, res: IRes) => {};
+const refresh = async (req: IReq, res: IRes): Promise<void> => {
+  const tokenCookie = req.cookies.token;
+  if (!tokenCookie) throw new GenericError('Unauthorized: Invalid token.', 401);
+
+  const decoded: any = await verifyToken(
+    tokenCookie,
+    process.env.REFRESH_TOKEN || ''
+  );
+
+  if (!decoded) throw new GenericError('Forbidden.', 403);
+
+  const user = await UserModel.findOne({ _id: decoded.user_id });
+
+  if (!user) throw new GenericError('Unauthorized: invalid token.', 401);
+
+  const accessToken = await createToken(
+    user._id as unknown as string,
+    process.env.ACCESS_TOKEN || '',
+    '20s'
+  );
+  res.status(200).json({ accessToken });
+};
 
 const logout = (
   req: IReq,
   res: IRes
 ): IRes<any, Record<string, any>> | undefined => {
-  const tokenCookie = req.cookies?.token;
+  const tokenCookie = req.cookies.token;
   if (!tokenCookie) return res.status(204).json({ message: 'Invalid cookie' });
   res
     .clearCookie('token', {
