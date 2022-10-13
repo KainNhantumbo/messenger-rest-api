@@ -9,6 +9,7 @@ import http from 'http';
 import globalErrorHandler from './middlewares/global-error-handler';
 import rateLimiter from './config/rate-limit';
 import { corsDomains, corsOptions } from './config/cors-options';
+import { logger } from './middlewares/logger';
 
 //server configuration
 config(); // loads environment variables
@@ -27,8 +28,9 @@ app.use(rateLimiter);
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
+app.use(logger);
 
-//functions
+//socket functions
 io.on('connection', (socket) => {
   console.log(`Socket ready ${socket.id}`);
   socket.on('send-message', (data) => {
@@ -39,8 +41,12 @@ io.on('connection', (socket) => {
     console.log('User disconnected.');
   });
 
-  socket.on('typing', () => {
-    socket.broadcast.emit('server-typing');
+  // typing
+  socket.on('typing-started', () => {
+    socket.broadcast.emit('typing-started-server');
+  });
+  socket.on('typing-stoped', () => {
+    socket.broadcast.emit('typing-stoped-server');
   });
 });
 

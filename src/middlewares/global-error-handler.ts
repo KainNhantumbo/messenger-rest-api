@@ -6,7 +6,6 @@ import {
 import GenericError from '../error/base-error';
 import genericErrorHandler from '../error/generic-error-handler';
 import { config } from 'dotenv';
-
 // loads environment variables
 config();
 
@@ -26,23 +25,23 @@ export default function globalErrorHandler(
   if (error instanceof GenericError) return genericErrorHandler(error, res);
 
   if (error.name == 'MongoServerError') {
-		if (error.message.split(' ')[0] == 'E11000') {
-			return res.status(409).json({
-				status: 'Conflict Error',
-				code: 409,
-				message:
-					'This e-mail is already used by another account. Try another one.',
-			});
-		}
-	}
-  
+    if (error.message.split(' ')[0] == 'E11000') {
+      return res.status(409).json({
+        status: 'Conflict Error',
+        code: 409,
+        message:
+          'This e-mail is already used by another account. Try another one.',
+      });
+    }
+  }
+
   if (process.env.NODE_ENV == 'development') {
     console.log(`An error has ocurred: ${error.message}\t${error.stack}`);
   }
 
-  res.status(500).json({
-    status: 'Internal Server Error',
-		code: 500,
-		message: 'An error occured while processing your request.',
-  })
+    res.status(500).json({
+      status: 'Internal Server Error',
+      code: 500,
+      message: 'An error occured while processing your request.',
+    });
 }
