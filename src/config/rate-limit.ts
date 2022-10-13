@@ -10,7 +10,12 @@ const rateLimiter: RateLimitRequestHandler = rateLimit({
       message: `Too may requests: ${options.message}\t${req.method}\t${req.url}\t${req.headers.origin}`,
       fileName: 'rate-limiter.log',
     });
-    res.status(options.statusCode).send(options.message);
+    res.status(options.statusCode).send(options.message).json({
+      status: 'Rate limit error',
+      message:
+        'Too many requests from this IP, please try again after 60 seconds.',
+      code: 400,
+    });
   },
   standardHeaders: true,
   legacyHeaders: false,
