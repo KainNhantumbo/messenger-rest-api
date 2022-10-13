@@ -1,16 +1,14 @@
 import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
-import { VerifyErrors, VerifyCallback } from 'jsonwebtoken';
 import { Request as IReq, Response as IRes } from 'express';
 import { createToken, verifyToken } from '../utils/jwt-helpers';
 import GenericError from '../error/base-error';
 import UserModel from '../models/User';
 import { config } from 'dotenv';
-import asyncWrapper from '../utils/async-wrapper';
 
 config(); // loads environment variables
 
 const login = async (req: IReq, res: IRes): Promise<void> => {
+  const PROD_ENV = process.env.NODE_ENV == 'development' ? false : true;
   const { password, email } = req.body;
   if (!password || !email)
     throw new GenericError('Please provide your e-mail and password.', 400);
@@ -42,7 +40,7 @@ const login = async (req: IReq, res: IRes): Promise<void> => {
     .status(202)
     .cookie('token', refreshToken, {
       httpOnly: true,
-      secure: false,
+      secure: PROD_ENV && true,
       sameSite: 'none',
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     })
@@ -74,12 +72,13 @@ const logout = (
   req: IReq,
   res: IRes
 ): IRes<any, Record<string, any>> | undefined => {
+  const PROD_ENV = process.env.NODE_ENV == 'development' ? false : true;
   const tokenCookie = req.cookies.token;
   if (!tokenCookie) return res.status(204).json({ message: 'Invalid cookie' });
   res
     .clearCookie('token', {
       httpOnly: true,
-      secure: false,
+      secure: PROD_ENV && true,
       sameSite: 'none',
     })
     .json({ message: 'Cookie cleared.' });
