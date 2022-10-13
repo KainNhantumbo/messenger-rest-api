@@ -27,7 +27,6 @@ const login = async (req: IReq, res: IRes): Promise<void> => {
     throw new GenericError('Wrong password. Please check and try again.', 401);
 
   const user_id: any = user._id;
-
   const accessToken = await createToken(
     user_id,
     process.env.ACCESS_TOKEN || '',
@@ -50,21 +49,18 @@ const login = async (req: IReq, res: IRes): Promise<void> => {
     .json({ accessToken });
 };
 
+// refresh token function
 const refresh = async (req: IReq, res: IRes): Promise<void> => {
   const tokenCookie = req.cookies.token;
   if (!tokenCookie) throw new GenericError('Unauthorized: Invalid token.', 401);
-
-  const decoded: any = await verifyToken(
+  const decodedPayload: any = await verifyToken(
     tokenCookie,
     process.env.REFRESH_TOKEN || ''
   );
 
-  if (!decoded) throw new GenericError('Forbidden.', 403);
-
-  const user = await UserModel.findOne({ _id: decoded.user_id });
-
+  if (!decodedPayload) throw new GenericError('Forbidden.', 403);
+  const user = await UserModel.findOne({ _id: decodedPayload.user_id });
   if (!user) throw new GenericError('Unauthorized: invalid token.', 401);
-
   const accessToken = await createToken(
     user._id as unknown as string,
     process.env.ACCESS_TOKEN || '',
@@ -73,6 +69,7 @@ const refresh = async (req: IReq, res: IRes): Promise<void> => {
   res.status(200).json({ accessToken });
 };
 
+// log out function
 const logout = (
   req: IReq,
   res: IRes
