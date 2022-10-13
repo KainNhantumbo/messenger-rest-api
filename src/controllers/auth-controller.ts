@@ -7,7 +7,7 @@ import { config } from 'dotenv';
 
 config(); // loads environment variables
 
-const login = async (req: IReq, res: IRes) => {
+const login = async (req: IReq, res: IRes): Promise<void> => {
   const { password, email } = req.body;
   if (!password || !email)
     throw new GenericError('Please provide your e-mail and password.', 400);
@@ -47,9 +47,21 @@ const login = async (req: IReq, res: IRes) => {
     .json({ accessToken });
 };
 
-const refresh = async (req: IReq, res: IRes) => {
-  
+const refresh = async (req: IReq, res: IRes) => {};
+
+const logout = (
+  req: IReq,
+  res: IRes
+): IRes<any, Record<string, any>> | undefined => {
+  const tokenCookie = req.cookies?.token;
+  if (!tokenCookie) return res.status(204).json({ message: 'Invalid cookie' });
+  res
+    .clearCookie('token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'none',
+    })
+    .json({ message: 'Cookie cleared.' });
 };
-const logout = async (req: IReq, res: IRes) => {};
 
 export { login, logout, refresh };
