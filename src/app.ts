@@ -10,6 +10,7 @@ import globalErrorHandler from './middlewares/global-error-handler';
 import rateLimiter from './config/rate-limit';
 import { corsDomains, corsOptions } from './config/cors-options';
 import { logger } from './middlewares/logger';
+import { error404Route } from './routes/not-found';
 
 //server configuration
 config(); // loads environment variables
@@ -51,6 +52,7 @@ io.on('connection', (socket) => {
 });
 
 // errors
+app.use(error404Route);
 app.use(globalErrorHandler);
 
 // server init
