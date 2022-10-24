@@ -18,8 +18,18 @@ export default class UserController {
     res.status(200).json({ users });
   }
 
-  async createUser (req: IReq, res: IRes) {
-    const {password, ...data} = req.body
-    await UserModel.create({password, ...data})
+  async createUser(req: IReq, res: IRes) {
+    const { password, email, ...data } = req.body;
+    if (!password || password.length < 6)
+      throw new AppError('Password must have at least 6 characters', 400);
+    if (!email) throw new AppError('Please provide your e-mail adress', 400);
+
+    // check for duplicates
+    const existingUser = await UserModel.exists({ email }).lean();
+    if (existingUser)
+      throw new AppError('Account with provided e-mail already exists', 409);
+
+    const createdUser = await UserModel.create({ password, email, ...data });
+    res.status(201).json({ userKey: createdUser.recovery_key });
   }
 }
