@@ -12,6 +12,8 @@ import { corsDomains, corsOptions } from './config/cors-options';
 import { logger } from './middlewares/logger';
 import { error404Route } from './routes/not-found';
 import { userRoutes } from './routes/users';
+import { IFileProps } from './@types/interfaces';
+import { writeFile, writeFileSync } from 'fs';
 
 //server configuration
 config(); // loads environment variables
@@ -51,6 +53,18 @@ io.on('connection', (socket) => {
   });
   socket.on('typing-stoped', () => {
     socket.broadcast.emit('typing-stoped-server');
+  });
+
+  // catch files
+  socket.on('file-upload', async ({ file, type }: IFileProps) => {
+    if (type.includes('image')) {
+      file = 'data:image/jpg;base64,iVBORw0KGgoAAAANSUhEUgA';
+      const fileExtension = file.split(';base64,').pop();
+      console.log(fileExtension);
+      file = type.split(';base64,').pop() || '';
+
+      writeFileSync('img.png', file, { encoding: 'base64' });
+    }
   });
 });
 
