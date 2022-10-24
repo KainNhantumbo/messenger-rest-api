@@ -1,22 +1,24 @@
-import mongoose, { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 
-export interface IMessage {
-  author: mongoose.Types.ObjectId;
+interface IMessage {
+  author: Types.ObjectId | undefined;
   content: string;
+  file: string;
 }
 
 const messageSchema = new Schema<IMessage>(
   {
     author: {
-      type: mongoose.Types.ObjectId,
+      type: Types.ObjectId,
       ref: 'User',
       required: true,
     },
     content: {
       type: String,
-      required: [true, 'Message body must be provided.'],
       maxlength: [10000, 'Message body is too large.'],
+      default: '',
     },
+    file: { type: String },
   },
   { timestamps: true }
 );

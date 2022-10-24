@@ -31,7 +31,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(logger);
 
-//socket functions
+//socket server functions
 io.on('connection', (socket) => {
   console.log(`Socket ready ${socket.id}`);
   socket.on('send-message', (data) => {

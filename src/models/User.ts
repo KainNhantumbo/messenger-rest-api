@@ -53,12 +53,16 @@ const UserSchema = new Schema<IUser>(
     friends: {
       type: [mongoose.Types.ObjectId],
       default: [],
-      ref: 'User'
+      ref: 'User',
     },
     password: {
       type: String,
       minlength: [6, 'The password must have at least 6 charaters.'],
       required: [true, 'Please provide a password.'],
+    },
+    avatar: {
+      type: String,
+      default: '',
     },
   },
   { timestamps: true }

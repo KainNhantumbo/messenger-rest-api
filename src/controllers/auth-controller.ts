@@ -8,7 +8,7 @@ import { config } from 'dotenv';
 config(); // loads environment variables
 
 const login = async (req: IReq, res: IRes): Promise<void> => {
-  const PROD_ENV = process.env.NODE_ENV == 'development' ? false : true;
+  const PROD_ENV = process.env.NODE_ENV == 'development' ? true : false;
   const { password, email } = req.body;
   if (!password || !email)
     throw new AppError('Please provide your e-mail and password.', 400);
@@ -72,7 +72,7 @@ const logout = (
   req: IReq,
   res: IRes
 ): IRes<any, Record<string, any>> | undefined => {
-  const PROD_ENV = process.env.NODE_ENV == 'development' ? false : true;
+  const PROD_ENV = process.env.NODE_ENV == 'development' ? true : false;
   const tokenCookie = req.cookies.token;
   if (!tokenCookie) return res.status(204).json({ message: 'Invalid cookie' });
   res
