@@ -18,5 +18,8 @@ export default class UserController {
     res.status(200).json({ users });
   }
 
-  
+  async createUser (req: IReq, res: IRes) {
+    const {password, ...data} = req.body
+    await UserModel.create({password, ...data})
+  }
 }

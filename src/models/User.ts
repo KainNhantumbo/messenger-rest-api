@@ -1,4 +1,6 @@
-import mongoose, { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
+import { v4 as uuidV4 } from 'uuid';
+import * as bcrypt from 'bcrypt';
 
 interface IUser {
   first_name: string;
@@ -8,7 +10,8 @@ interface IUser {
   email: string;
   avatar: string;
   password: string;
-  friends: mongoose.Types.ObjectId[];
+  recovery_key: string;
+  friends: Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -24,13 +27,13 @@ const UserSchema = new Schema<IUser>(
       type: String,
       trim: true,
       required: [true, 'First name must be provided.'],
-      maxlength: [64, 'Provided first name is too long.'],
+      maxlength: [32, 'Provided first name is too long.'],
     },
     last_name: {
       type: String,
       trim: true,
       required: [true, 'Last name must be provided.'],
-      maxlength: [64, 'Provided last name is too long.'],
+      maxlength: [32, 'Provided last name is too long.'],
     },
     bio: {
       type: String,
@@ -51,7 +54,7 @@ const UserSchema = new Schema<IUser>(
       maxlength: [64, 'Provided e-mail adress is too long.'],
     },
     friends: {
-      type: [mongoose.Types.ObjectId],
+      type: [Types.ObjectId],
       default: [],
       ref: 'User',
     },
@@ -60,6 +63,10 @@ const UserSchema = new Schema<IUser>(
       minlength: [6, 'The password must have at least 6 charaters.'],
       required: [true, 'Please provide a password.'],
     },
+    recovery_key: {
+      type: String,
+      required: true,
+    },
     avatar: {
       type: String,
       default: '',
@@ -67,6 +74,22 @@ const UserSchema = new Schema<IUser>(
   },
   { timestamps: true }
 );
+
+//  hashing user password and recovery key
+UserSchema.pre('save', async function () {
+  try {
+    const ramdom_id: string = uuidV4()
+      .toUpperCase()
+      .split('-')
+      .join('')
+      .slice(0, 24);
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    this.recovery_key = await bcrypt.hash(ramdom_id, salt);
+  } catch (err) {
+    console.error(err);
+  }
+});
 
 const UserModel = model('User', UserSchema);
 export default UserModel;
