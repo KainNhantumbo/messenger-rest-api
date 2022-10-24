@@ -11,6 +11,7 @@ import rateLimiter from './config/rate-limit';
 import { corsDomains, corsOptions } from './config/cors-options';
 import { logger } from './middlewares/logger';
 import { error404Route } from './routes/not-found';
+import { userRoutes } from './routes/users';
 
 //server configuration
 config(); // loads environment variables
@@ -30,6 +31,8 @@ app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 app.use(logger);
+
+app.use('/api/v1/users', userRoutes);
 
 //socket server functions
 io.on('connection', (socket) => {

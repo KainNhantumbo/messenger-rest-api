@@ -11,7 +11,7 @@ import asyncWrapper from '../utils/async-wrapper';
 // loads environment variables
 config();
 
-const verifyTokenMiddleware = asyncWrapper(
+const authenticate = asyncWrapper(
   async (req: IReq, res: IRes, next: INextFn): Promise<void> => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer '))
@@ -28,4 +28,4 @@ const verifyTokenMiddleware = asyncWrapper(
   }
 );
 
-export default verifyTokenMiddleware;
+export default authenticate;
