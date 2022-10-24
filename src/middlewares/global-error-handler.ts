@@ -3,7 +3,7 @@ import {
   Response as IRes,
   NextFunction as INext,
 } from 'express';
-import GenericError from '../error/base-error';
+import AppError from '../error/base-error';
 import genericErrorHandler from '../error/generic-error-handler';
 import { config } from 'dotenv';
 // loads environment variables
@@ -17,12 +17,12 @@ config();
  * @param next next middleware Function
  */
 export default function globalErrorHandler(
-  error: Error | GenericError,
+  error: Error | AppError,
   req: IReq,
   res: IRes,
   next: INext
 ): IRes<any, Record<string, any>> | undefined {
-  if (error instanceof GenericError) return genericErrorHandler(error, res);
+  if (error instanceof AppError) return genericErrorHandler(error, res);
 
   if (error.name == 'MongoServerError') {
     if (error.message.split(' ')[0] == 'E11000') {

@@ -14,7 +14,7 @@ import { error404Route } from './routes/not-found';
 
 //server configuration
 config(); // loads environment variables
-const PORT = process.env.PORT || 4800;
+const PORT = process.env.PORT || 5200;
 
 const app: Application = express();
 const httpServer = http.createServer(app);

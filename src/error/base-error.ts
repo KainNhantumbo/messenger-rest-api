@@ -1,4 +1,4 @@
-export default class GenericError extends Error {
+export default class AppError extends Error {
   public readonly message: string;
   public readonly statusCode: number;
 

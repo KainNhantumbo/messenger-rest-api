@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import { Request as IReq, Response as IRes } from 'express';
 import { createToken, verifyToken } from '../utils/jwt-helpers';
-import GenericError from '../error/base-error';
+import AppError from '../error/base-error';
 import UserModel from '../models/User';
 import { config } from 'dotenv';
 
@@ -11,18 +11,18 @@ const login = async (req: IReq, res: IRes): Promise<void> => {
   const PROD_ENV = process.env.NODE_ENV == 'development' ? false : true;
   const { password, email } = req.body;
   if (!password || !email)
-    throw new GenericError('Please provide your e-mail and password.', 400);
+    throw new AppError('Please provide your e-mail and password.', 400);
 
   const user = await UserModel.findOne({ email: email });
   if (!user)
-    throw new GenericError(
+    throw new AppError(
       'Account not found. Please check your e-mail and try again.',
       404
     );
 
   const match = await bcrypt.compare(password, user.password);
   if (!match)
-    throw new GenericError('Wrong password. Please check and try again.', 401);
+    throw new AppError('Wrong password. Please check and try again.', 401);
 
   const user_id: any = user._id;
   const accessToken = await createToken(
@@ -50,15 +50,15 @@ const login = async (req: IReq, res: IRes): Promise<void> => {
 // refresh token function
 const refresh = async (req: IReq, res: IRes): Promise<void> => {
   const tokenCookie = req.cookies.token;
-  if (!tokenCookie) throw new GenericError('Unauthorized: Invalid token.', 401);
+  if (!tokenCookie) throw new AppError('Unauthorized: Invalid token.', 401);
   const decodedPayload: any = await verifyToken(
     tokenCookie,
     process.env.REFRESH_TOKEN || ''
   );
 
-  if (!decodedPayload) throw new GenericError('Forbidden.', 403);
+  if (!decodedPayload) throw new AppError('Forbidden.', 403);
   const user = await UserModel.findOne({ _id: decodedPayload.user_id });
-  if (!user) throw new GenericError('Unauthorized: invalid token.', 401);
+  if (!user) throw new AppError('Unauthorized: invalid token.', 401);
   const accessToken = await createToken(
     user._id as unknown as string,
     process.env.ACCESS_TOKEN || '',

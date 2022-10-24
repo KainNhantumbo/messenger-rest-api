@@ -1,7 +1,7 @@
 import { Response as IRes } from 'express';
-import GenericError from './base-error';
+import AppError from './base-error';
 
-export default function genericErrorHandler(err: GenericError, res: IRes) {
+export default function genericErrorHandler(err: AppError, res: IRes) {
   const { message, statusCode } = err;
   return res.status(statusCode).json({
     message,
