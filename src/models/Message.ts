@@ -1,7 +1,7 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model } from 'mongoose';
 
 interface IMessage {
-  author: Types.ObjectId | undefined;
+  author: Schema.Types.ObjectId;
   content: string;
   file: string;
 }
@@ -9,7 +9,7 @@ interface IMessage {
 const messageSchema = new Schema<IMessage>(
   {
     author: {
-      type: Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },

@@ -1,4 +1,4 @@
-import { Schema, model, Types } from 'mongoose';
+import { Schema, model } from 'mongoose';
 import { v4 as uuidV4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 
@@ -11,7 +11,7 @@ interface IUser {
   avatar: string;
   password: string;
   recovery_key: string;
-  friends: Types.ObjectId[];
+  friends: Schema.Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -53,11 +53,12 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       maxlength: [64, 'Provided e-mail adress is too long.'],
     },
-    friends: {
-      type: [Types.ObjectId],
-      default: [],
-      ref: 'User',
-    },
+    friends: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     password: {
       type: String,
       minlength: [6, 'The password must have at least 6 charaters.'],
@@ -76,7 +77,7 @@ const UserSchema = new Schema<IUser>(
 );
 
 //  hashing user password and recovery key
-UserSchema.pre('save', async function () {
+UserSchema.pre('save', async function (next) {
   try {
     const ramdom_id: string = uuidV4()
       .toUpperCase()
@@ -86,8 +87,9 @@ UserSchema.pre('save', async function () {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
     this.recovery_key = await bcrypt.hash(ramdom_id, salt);
-  } catch (err) {
-    console.error(err);
+    next();
+  } catch (err: any) {
+    next(err);
   }
 });
 

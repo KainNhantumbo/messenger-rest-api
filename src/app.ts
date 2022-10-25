@@ -12,8 +12,7 @@ import { corsDomains, corsOptions } from './config/cors-options';
 import { logger } from './middlewares/logger';
 import { error404Route } from './routes/not-found';
 import { userRoutes } from './routes/users';
-import { IFileProps } from './@types/interfaces';
-import { writeFile, writeFileSync } from 'fs';
+import socketService from './services/socket';
 
 //server configuration
 config(); // loads environment variables
@@ -37,36 +36,7 @@ app.use(logger);
 app.use('/api/v1/users', userRoutes);
 
 //socket server functions
-io.on('connection', (socket) => {
-  console.log(`Socket ready ${socket.id}`);
-  socket.on('send-message', (data) => {
-    console.log('message received', data);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected.');
-  });
-
-  // typing
-  socket.on('typing-started', () => {
-    socket.broadcast.emit('typing-started-server');
-  });
-  socket.on('typing-stoped', () => {
-    socket.broadcast.emit('typing-stoped-server');
-  });
-
-  // catch files
-  socket.on('file-upload', async ({ file, type }: IFileProps) => {
-    if (type.includes('image')) {
-      file = 'data:image/jpg;base64,iVBORw0KGgoAAAANSUhEUgA';
-      const fileExtension = file.split(';base64,').pop();
-      console.log(fileExtension);
-      file = type.split(';base64,').pop() || '';
-
-      writeFileSync('img.png', file, { encoding: 'base64' });
-    }
-  });
-});
+socketService(io)
 
 // errors
 app.use(error404Route);
