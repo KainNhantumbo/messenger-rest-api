@@ -18,4 +18,21 @@ export default class MessegerController {
     if (!message) throw new AppError('Message not found', 404);
     res.status(200).json({ message });
   }
+
+  async createMessage(data: any) {
+    await MessageModel.create({ ...data });
+  }
+
+  async deleteMessage(req: IReq, res: IRes) {
+    const userId = req.body.user;
+    const messageId = req.params.id;
+    await MessageModel.deleteOne({ _id: messageId, author: userId }).lean();
+    res.sendStatus(204);
+  }
+
+  async deleteAllMessages(req: IReq, res: IRes) {
+    const userId = req.body.user;
+    await MessageModel.deleteMany({ author: userId }).lean();
+    res.sendStatus(204);
+  }
 }
