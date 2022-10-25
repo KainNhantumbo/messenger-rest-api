@@ -1,12 +1,18 @@
 import { writeFileSync } from 'fs';
+import path from 'path';
 import { Server } from 'socket.io';
 import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 import { IFileProps } from '../@types/interfaces';
+import { v4 as uuidV4 } from 'uuid';
 
-type SocketType = Server<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
+type SocketType = Server<
+  DefaultEventsMap,
+  DefaultEventsMap,
+  DefaultEventsMap,
+  any
+>;
 
 export default function socketService(io: SocketType) {
-
   return io.on('connection', (socket) => {
     socket.on('disconnect', () => {
       console.log('User disconnected.');
@@ -17,7 +23,6 @@ export default function socketService(io: SocketType) {
     socket.on('send-message', (data) => {
       console.log('message received', data);
     });
-
 
     // typing --------------------
     socket.on('typing-started', () => {
@@ -34,11 +39,15 @@ export default function socketService(io: SocketType) {
         const fileExtension = file.split(';base64,').pop();
         console.log(fileExtension);
         file = type.split(';base64,').pop() || '';
-        const filename = '';
+        const filename = uuidV4();
 
-        writeFileSync(`${filename}.${fileExtension}`, file, {
-          encoding: 'base64',
-        });
+        writeFileSync(
+          path.join(__dirname + `/uploads/${filename}.${fileExtension}`),
+          file,
+          {
+            encoding: 'base64',
+          }
+        );
       }
     });
   });

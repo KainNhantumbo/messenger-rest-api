@@ -11,7 +11,7 @@ interface IUser {
   avatar: string;
   password: string;
   recovery_key: string;
-  friends: Schema.Types.ObjectId[];
+  friends: Schema.Types.ObjectId;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -53,12 +53,10 @@ const UserSchema = new Schema<IUser>(
       unique: true,
       maxlength: [64, 'Provided e-mail adress is too long.'],
     },
-    friends: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-      },
-    ],
+    friends: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
     password: {
       type: String,
       minlength: [6, 'The password must have at least 6 charaters.'],

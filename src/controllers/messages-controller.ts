@@ -1,7 +1,7 @@
 import MessageModel from '../models/Message';
 import AppError from '../error/base-error';
 import { Response as IRes, Request as IReq } from 'express';
-export default class MessegerController {
+export default class MessegesController {
   async getAllMessages(req: IReq, res: IRes) {
     const userId = req.body.user;
     const messages = await MessageModel.find({ author: userId }).lean();
@@ -20,7 +20,11 @@ export default class MessegerController {
   }
 
   async createMessage(data: any) {
-    await MessageModel.create({ ...data });
+    try {
+      await MessageModel.create({ ...data });
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async deleteMessage(req: IReq, res: IRes) {
