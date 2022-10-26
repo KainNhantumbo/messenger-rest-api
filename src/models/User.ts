@@ -1,5 +1,4 @@
 import { Schema, model } from 'mongoose';
-import { v4 as uuidV4 } from 'uuid';
 import * as bcrypt from 'bcrypt';
 
 interface IUser {
@@ -19,21 +18,21 @@ const UserSchema = new Schema<IUser>(
     user_name: {
       type: String,
       trim: true,
-      required: [true, 'Username must be provided.'],
-      maxlength: [20, 'Provided user name is too long.'],
+      required: [true, 'Username must be provided'],
+      maxlength: [20, 'Provided user name is too long'],
       unique: true,
     },
     first_name: {
       type: String,
       trim: true,
-      required: [true, 'First name must be provided.'],
-      maxlength: [32, 'Provided first name is too long.'],
+      required: [true, 'First name must be provided'],
+      maxlength: [32, 'Provided first name is too long'],
     },
     last_name: {
       type: String,
       trim: true,
       required: [true, 'Last name must be provided.'],
-      maxlength: [32, 'Provided last name is too long.'],
+      maxlength: [32, 'Provided last name is too long'],
     },
     bio: {
       type: String,
@@ -43,7 +42,7 @@ const UserSchema = new Schema<IUser>(
     },
     email: {
       type: String,
-      required: [true, 'Please provide your e-mail adress.'],
+      required: [true, 'Please provide your e-mail adress'],
       trim: true,
       lowercase: true,
       match: [
@@ -51,7 +50,7 @@ const UserSchema = new Schema<IUser>(
         'Please provide a valid e-mail adress.',
       ],
       unique: true,
-      maxlength: [64, 'Provided e-mail adress is too long.'],
+      maxlength: [64, 'Provided e-mail adress is too long'],
     },
     friends: {
       type: Schema.Types.ObjectId,
@@ -59,12 +58,12 @@ const UserSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      minlength: [6, 'The password must have at least 6 charaters.'],
-      required: [true, 'Please provide a password.'],
+      minlength: [6, 'The password must have at least 6 charaters'],
+      required: [true, 'Please provide a password'],
     },
     recovery_key: {
       type: String,
-      required: true,
+      required: [true, 'Please provide user account recovery key'],
     },
     avatar: {
       type: String,
@@ -77,14 +76,9 @@ const UserSchema = new Schema<IUser>(
 //  hashing user password and recovery key
 UserSchema.pre('save', async function (next) {
   try {
-    const ramdom_id: string = uuidV4()
-      .toUpperCase()
-      .split('-')
-      .join('')
-      .slice(0, 24);
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-    this.recovery_key = await bcrypt.hash(ramdom_id, salt);
+    this.recovery_key = await bcrypt.hash(this.recovery_key, salt);
     next();
   } catch (err: any) {
     next(err);

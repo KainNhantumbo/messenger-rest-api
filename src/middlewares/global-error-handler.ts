@@ -7,6 +7,7 @@ import AppError from '../error/base-error';
 import genericErrorHandler from '../error/generic-error-handler';
 import { config } from 'dotenv';
 import { eventLogger } from './logger';
+
 // loads environment variables
 config();
 
@@ -34,6 +35,17 @@ export default function globalErrorHandler(
           'This e-mail is already used by another account. Try another one.',
       });
     }
+  }
+
+  if (error.name == 'ValidationError') {
+    const errorMessage = Object.values((error as any).errors)
+      .map((obj: any) => obj.message)
+      .join('. ');
+    return res.status(400).json({
+      status: 'Data Validation Error',
+      code: 400,
+      message: errorMessage,
+    });
   }
 
   if (process.env.NODE_ENV == 'development') {

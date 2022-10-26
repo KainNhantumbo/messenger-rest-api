@@ -1,6 +1,7 @@
 import AppError from '../error/base-error';
 import UserModel from '../models/User';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidV4 } from 'uuid';
 import { Request as IReq, Response as IRes } from 'express';
 
 export default class UserController {
@@ -32,8 +33,18 @@ export default class UserController {
     if (existingUser)
       throw new AppError('Account with provided e-mail already exists', 409);
 
-    const createdUser = await UserModel.create({ password, email, ...data });
-    res.status(201).json({ userKey: createdUser.recovery_key });
+    const ramdomId: Array<string> = uuidV4().toUpperCase().split('-');
+    const recovery_key: string = `${ramdomId[0]}-${ramdomId[2]}-${
+      ramdomId[ramdomId.length - 1]
+    }`;
+
+    await UserModel.create({
+      password,
+      email,
+      recovery_key,
+      ...data,
+    });
+    res.status(201).json({ userKey: recovery_key });
   }
 
   async updateUser(req: IReq, res: IRes): Promise<void> {

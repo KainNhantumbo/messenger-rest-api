@@ -1,15 +1,16 @@
 import asyncWrapper from '../utils/async-wrapper';
 import { Router } from 'express';
 import ChatController from '../controllers/chat-controller';
+import authenticate from '../middlewares/auth-middleware';
 
 const router = Router();
 const controller = new ChatController();
 
 router
   .route('/')
-  .get(asyncWrapper(controller.getAllChats))
-  .post(asyncWrapper(controller.createChat));
+  .get(authenticate, asyncWrapper(controller.getAllChats))
+  .post(authenticate, asyncWrapper(controller.createChat));
 
-router.route('/:id').get(asyncWrapper(controller.getChat));
+router.route('/:id').get(authenticate, asyncWrapper(controller.getChat));
 
 export { router as chatRoutes };

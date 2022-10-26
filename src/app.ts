@@ -40,7 +40,6 @@ app.use(logger);
 // routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
-app.use(authenticate)
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/chats', chatRoutes);
 
