@@ -13,9 +13,10 @@ import { logger } from './middlewares/logger';
 import { error404Route } from './routes/not-found';
 import { userRoutes } from './routes/users';
 import socketService from './services/socket';
-import { messageRoutes } from './routes/messages';
 import authenticate from './middlewares/auth-middleware';
+import { messageRoutes } from './routes/messages';
 import { chatRoutes } from './routes/chats';
+import { authRoutes } from './routes/auth';
 
 //server configuration
 config(); // loads environment variables
@@ -37,6 +38,7 @@ app.use(cookieParser());
 app.use(logger);
 
 // routes
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use(authenticate)
 app.use('/api/v1/messages', messageRoutes);
