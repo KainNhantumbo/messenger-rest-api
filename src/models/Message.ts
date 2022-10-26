@@ -3,11 +3,13 @@ import { Schema, model } from 'mongoose';
 interface IMessage {
   author: Schema.Types.ObjectId;
   content: string;
+  chatId: string;
   file: string;
 }
 
 const messageSchema = new Schema<IMessage>(
   {
+    chatId: { type: String, required: true },
     author: {
       type: Schema.Types.ObjectId,
       ref: 'User',
