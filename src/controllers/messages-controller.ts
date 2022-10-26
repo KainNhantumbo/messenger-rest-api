@@ -19,9 +19,11 @@ export default class MessegesController {
     res.status(200).json({ message });
   }
 
-  async createMessage(data: any): Promise<void> {
+  async createMessage(req: IReq, res: IRes): Promise<void> {
     try {
-      await MessageModel.create({ ...data });
+      const userId = req.body.user;
+      const data = req.body;
+      await MessageModel.create({ author: userId, ...data });
     } catch (err) {
       console.error(err);
     }

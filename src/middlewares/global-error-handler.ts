@@ -6,6 +6,7 @@ import {
 import AppError from '../error/base-error';
 import genericErrorHandler from '../error/generic-error-handler';
 import { config } from 'dotenv';
+import { eventLogger } from './logger';
 // loads environment variables
 config();
 
@@ -36,12 +37,18 @@ export default function globalErrorHandler(
   }
 
   if (process.env.NODE_ENV == 'development') {
-    console.log(`An error has ocurred: ${error.message}\t${error.stack}`);
+    console.log(
+      `An uncaught error has ocurred: ${error.message}\t${error.stack}`
+    );
+    eventLogger({
+      message: error.stack || error.message,
+      fileName: 'uncaught-errors.log',
+    });
   }
 
-    res.status(500).json({
-      status: 'Internal Server Error',
-      code: 500,
-      message: 'An error occured while processing your request.',
-    });
+  res.status(500).json({
+    status: 'Internal Server Error',
+    code: 500,
+    message: 'An error occured while processing your request.',
+  });
 }

@@ -14,11 +14,11 @@ const eventLogger = async <T extends IEventLogger>({
   fileName,
 }: T): Promise<void> => {
   const date = new Date().toISOString();
-  const log = `${date}\t${uuidV4}\t${message}\n`;
+  const log = `${date}\t${uuidV4()}\t${message}\n`;
 
   try {
     if (!existsSync(path.join(__dirname, '..', 'logs'))) {
-      await mkdir(path.join(path.join(__dirname, '..', 'logs', fileName)));
+      await mkdir(path.join(path.join(__dirname, '..', 'logs')));
     }
     await appendFile(path.join(__dirname, '..', 'logs', fileName), log);
   } catch (err) {
@@ -29,10 +29,10 @@ const eventLogger = async <T extends IEventLogger>({
 const logger = (req: IReq, res: IRes, next: INext) => {
   eventLogger({
     message: `${req.method}:\t${req.url}\t${req.headers.origin} `,
-    fileName: 'logs.log',
+    fileName: 'request-logs.log',
   });
 
-  console.log(`${req.method}\t\t${req.path}`);
+  console.log(`${req.method}\t${req.path}\t${req.url} `);
   next();
 };
 

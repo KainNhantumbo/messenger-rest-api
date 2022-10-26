@@ -50,7 +50,7 @@ export default class authController {
         sameSite: 'strict',
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       })
-      .json({ accessToken });
+      .json({ token: accessToken, userId: user_id });
   }
 
   // refresh token function

@@ -5,15 +5,9 @@ interface IChat {
 }
 
 const chatSchema = new Schema<IChat>(
-  {
-    members: {
-      type: Array,
-      default: [],
-    },
-  },
+  { members: { type: Array, default: [] } },
   { timestamps: true }
 );
 
 const ChatModel = model('Chat', chatSchema);
-
 export default ChatModel;
