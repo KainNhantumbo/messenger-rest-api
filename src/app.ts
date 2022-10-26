@@ -15,6 +15,7 @@ import { userRoutes } from './routes/users';
 import socketService from './services/socket';
 import { messageRoutes } from './routes/messages';
 import authenticate from './middlewares/auth-middleware';
+import { chatRoutes } from './routes/chats';
 
 //server configuration
 config(); // loads environment variables
@@ -27,7 +28,7 @@ const io = new Server(httpServer, {
   cors: { origin: corsDomains, credentials: true },
 });
 
-// middlewares
+//==== middlewares ====//
 app.use(cors(corsOptions));
 app.use(rateLimiter);
 app.use(helmet());
@@ -35,11 +36,13 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(logger);
 
+// routes
 app.use('/api/v1/users', userRoutes);
 app.use(authenticate)
 app.use('/api/v1/messages', messageRoutes);
-//socket server functions
+app.use('/api/v1/chats', chatRoutes);
 
+//socket server functions
 socketService(io)
 
 // errors
