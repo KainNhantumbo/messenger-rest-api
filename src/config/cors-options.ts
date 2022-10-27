@@ -6,6 +6,7 @@ const corsOptions: CorsOptions = {
   origin: corsDomains,
   methods: ['GET', 'POST', 'DELETE', 'PATCH'],
   optionsSuccessStatus: 200,
+  credentials: true,
 };
 
-export {corsDomains, corsOptions}
+export { corsDomains, corsOptions };

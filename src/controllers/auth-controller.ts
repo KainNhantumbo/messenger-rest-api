@@ -6,15 +6,9 @@ import UserModel from '../models/User';
 import { config } from 'dotenv';
 
 config(); // loads environment variables
-
 export default class authController {
-  private readonly PROD_ENV: boolean;
-
-  constructor() {
-    this.PROD_ENV = process.env.NODE_ENV == 'development' ? true : false;
-  }
-
   async login(req: IReq, res: IRes): Promise<void> {
+    const PROD_ENV = process.env.NODE_ENV === 'development' ? true : false;
     const { password, email } = req.body;
     if (!password || !email)
       throw new AppError('Please provide your e-mail and password.', 400);
@@ -46,7 +40,7 @@ export default class authController {
       .status(200)
       .cookie('userToken', refreshToken, {
         httpOnly: true,
-        secure: this.PROD_ENV && true,
+        secure: PROD_ENV && true,
         sameSite: 'strict',
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       })
@@ -74,6 +68,7 @@ export default class authController {
   }
 
   logout(req: IReq, res: IRes): IRes<any, Record<string, any>> | undefined {
+    const PROD_ENV = process.env.NODE_ENV === 'development' ? true : false;
     const tokenCookie = req.cookies.userToken;
     if (!tokenCookie)
       return res.status(401).json({ message: 'Invalid cookie' });
@@ -81,7 +76,7 @@ export default class authController {
       .status(204)
       .clearCookie('userToken', {
         httpOnly: true,
-        secure: this.PROD_ENV && true,
+        secure: PROD_ENV && true,
         sameSite: 'strict',
       })
       .json({ message: 'Cookie cleared.' });
