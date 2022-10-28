@@ -7,7 +7,7 @@ interface IUser {
   user_name: string;
   bio: string;
   email: string;
-  avatar: string;
+  picture: { id: string; extension: string; filePath: string };
   password: string;
   recovery_key: string;
   friends: Schema.Types.ObjectId;
@@ -65,9 +65,19 @@ const UserSchema = new Schema<IUser>(
       type: String,
       required: [true, 'Please provide user account recovery key'],
     },
-    avatar: {
-      type: String,
-      default: '',
+    picture: {
+      id: {
+        type: String,
+        default: '',
+      },
+      extension: {
+        type: String,
+        default: '',
+      },
+      filePath: {
+        type: String,
+        default: '',
+      },
     },
   },
   { timestamps: true }

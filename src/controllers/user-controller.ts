@@ -3,16 +3,29 @@ import UserModel from '../models/User';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidV4 } from 'uuid';
 import { Request as IReq, Response as IRes } from 'express';
+import path from 'path';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import fsSync from 'fs';
+import { UserData } from '../@types/interfaces';
 
 export default class UserController {
-  async getUser(req: IReq, res: IRes): Promise<void> {
+  async getUser(req: IReq, res: IRes): Promise<IRes<any, Record<string, any>>> {
     const userId = req.body.user;
-    const user = await UserModel.findOne({ _id: userId })
+    const foundUser = await UserModel.findOne({ _id: userId })
       .select('-password -recovery_key')
       .lean();
 
-    if (!user) throw new AppError('User not found.', 404);
-    res.status(200).json({ user });
+    if (!foundUser) throw new AppError('User not found.', 404);
+
+    const { picture, ...data } = foundUser;
+    if (picture.filePath) {
+      const avatarFileData = await readFile(picture.filePath, {
+        encoding: 'base64',
+      });
+      const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
+      return res.status(200).json({ user: { ...data, avatar } });
+    }
+    return res.status(200).json({ user: { ...data, avatar: '' } });
   }
 
   async getAllUsers(req: IReq, res: IRes): Promise<void> {
@@ -55,30 +68,55 @@ export default class UserController {
     // check if user exists
     const isUser = await UserModel.exists({ _id: userId }).lean();
     if (!isUser) throw new AppError('User not found', 404);
-    
+
     if (avatar) {
-    
+      const fileData = avatar.split(';base64,').pop();
+      const fileExtension = avatar.split(';base64,')[0].split('/')[1];
+      const ramdom_id = uuidV4();
+      const storePath = '/uploads/users/images';
+      const fileWithPath = path.join(
+        __dirname,
+        '..',
+        `${storePath}/${ramdom_id}.${fileExtension}`
+      );
+
+      if (!fsSync.existsSync(path.join(__dirname, '..', storePath))) {
+        await mkdir(path.join(__dirname, '..', storePath), {
+          recursive: true,
+        });
+      }
+      await writeFile(fileWithPath, fileData, { encoding: 'base64' });
+      data.picture = {
+        id: ramdom_id,
+        extension: fileExtension,
+        filePath: fileWithPath,
+      };
     }
-    
+
     if (password) {
       if (String(password).length < 6)
         throw new AppError('Password must have at least 6 characters', 400);
       const salt = await bcrypt.genSalt(10);
-      password = await bcrypt.hash(password, salt);
-      const updatedData = await UserModel.findOneAndUpdate(
-        { _id: userId },
-        { ...data, password },
-        { runValidators: true, new: true }
-      ).select('-password -recovery_key');
-      return res.status(200).json({ user: updatedData });
+      data.password = await bcrypt.hash(password, salt);
     }
 
-    const updatedData = await UserModel.findOneAndUpdate(
+    const updatedUserData: UserData = await UserModel.findOneAndUpdate(
       { _id: userId },
       { ...data },
       { runValidators: true, new: true }
-    ).select('-password -recovery_key');
-    return res.status(200).json({ user: updatedData });
+    )
+      .select('-password -recovery_key')
+      .lean();
+    const { picture, ...updatedData } = updatedUserData;
+
+    if (picture.filePath) {
+      const avatarFileData = await readFile(picture.filePath, {
+        encoding: 'base64',
+      });
+      const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
+      return res.status(200).json({ user: { ...updatedData, avatar } });
+    }
+    return res.status(200).json({ user: { ...updatedData, avatar: '' } });
   }
 
   async deleteUser(req: IReq, res: IRes): Promise<void> {
