@@ -6,7 +6,7 @@ import { Request as IReq, Response as IRes } from 'express';
 import path from 'path';
 import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { UserData } from '../@types/interfaces';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 
 export default class UserController {
   async getUser(req: IReq, res: IRes): Promise<IRes<any, Record<string, any>>> {
@@ -18,23 +18,68 @@ export default class UserController {
     if (!foundUser) throw new AppError('User not found.', 404);
 
     const { picture, ...data } = foundUser;
-
-    if (existsSync(picture.filePath)) {
-      if (picture.filePath) {
-        const avatarFileData = await readFile(picture.filePath, {
-          encoding: 'base64',
-        });
-        const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
-        return res.status(200).json({ user: { ...data, avatar } });
-      }
+    if (picture?.filePath && existsSync(picture?.filePath)) {
+      const avatarFileData = await readFile(picture.filePath, {
+        encoding: 'base64',
+      });
+      const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
+      return res.status(200).json({ user: { ...data, avatar } });
     }
     return res.status(200).json({ user: { ...data, avatar: '' } });
   }
 
   async getAllUsers(req: IReq, res: IRes): Promise<void> {
-    const users = await UserModel.find({})
-      .select('-password -recovery_key')
-      .lean();
+    const { sort, search, fields, offset, limit } = req.query;
+    const queryParams: any = {};
+
+    if (search) {
+      queryParams['$or'] = [
+        { user_name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { first_name: { $regex: search, $options: 'i' } },
+        { last_name: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    let queryResult = UserModel.find(queryParams);
+
+    if (fields) {
+      let fieldsString = String(fields);
+      if (fieldsString.includes('avatar')) {
+        fieldsString = fieldsString.replace('avatar', 'picture');
+      }
+      const formatedFields = fieldsString.split(',').join(' ');
+      queryResult = queryResult.select(formatedFields);
+    } else {
+      queryResult = queryResult.select('-password -recovery_key');
+    }
+
+    if (sort) {
+      const sortValue: string = String(sort);
+      queryResult = queryResult.sort(sortValue);
+    } else {
+      queryResult = queryResult.sort('user_name');
+    }
+
+    if (limit && offset) {
+      queryResult.skip(Number(offset)).limit(Number(limit));
+    }
+
+    const foundUsers = await queryResult.lean();
+    const users: any = foundUsers.map((user) => {
+      if (user.picture && existsSync(user.picture?.filePath)) {
+        const avatarFileData = readFileSync(user.picture.filePath, {
+          encoding: 'base64',
+        });
+        const avatar = `data:image/${user.picture.extension};base64,${avatarFileData}`;
+        delete (user as any).picture;
+        (user as any).avatar = avatar;
+        return user;
+      }
+      delete (user as any).picture;
+      (user as any).avatar = '';
+      return user;
+    });
     res.status(200).json({ users });
   }
 
@@ -141,7 +186,7 @@ export default class UserController {
       _id: userId,
     });
     if (!deletedUser) throw new AppError('Unable to process your request', 202);
-// remove user profile picture from  disk
+    // remove user profile picture from  disk
     await rm(deletedUser.picture.filePath);
 
     res.sendStatus(200);
