@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidV4 } from 'uuid';
 import { Request as IReq, Response as IRes } from 'express';
 import path from 'path';
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { UserData } from '../@types/interfaces';
 import { existsSync } from 'fs';
 
@@ -125,8 +125,25 @@ export default class UserController {
   }
 
   async deleteUser(req: IReq, res: IRes): Promise<void> {
-    const userId = req.body.user;
-    await UserModel.deleteOne({ _id: userId }).lean();
+    const { user: userId, password } = req.body;
+    if (!password) throw new AppError('Please provide your password.', 400);
+
+    if (String(password).length < 6)
+      throw new AppError('Invalid password.', 400);
+
+    const foundUser = await UserModel.findOne({ _id: userId });
+    if (!foundUser) throw new AppError('Account not found.', 404);
+
+    const passwordMatch = await bcrypt.compare(password, foundUser.password);
+    if (!passwordMatch) throw new AppError('Wrong password, try again. ', 403);
+
+    const deletedUser = await UserModel.findOneAndDelete({
+      _id: userId,
+    });
+    if (!deletedUser) throw new AppError('Unable to process your request', 202);
+// remove user profile picture from  disk
+    await rm(deletedUser.picture.filePath);
+
     res.sendStatus(200);
   }
 }

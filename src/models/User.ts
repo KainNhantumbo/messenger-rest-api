@@ -47,7 +47,7 @@ const UserSchema = new Schema<IUser>(
       lowercase: true,
       match: [
         /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-        'Please provide a valid e-mail adress.',
+        'Please provide a valid e-mail adress',
       ],
       unique: true,
       maxlength: [64, 'Provided e-mail adress is too long'],
