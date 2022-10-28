@@ -5,8 +5,8 @@ import { v4 as uuidV4 } from 'uuid';
 import { Request as IReq, Response as IRes } from 'express';
 import path from 'path';
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import fsSync from 'fs';
 import { UserData } from '../@types/interfaces';
+import { existsSync } from 'fs';
 
 export default class UserController {
   async getUser(req: IReq, res: IRes): Promise<IRes<any, Record<string, any>>> {
@@ -18,12 +18,15 @@ export default class UserController {
     if (!foundUser) throw new AppError('User not found.', 404);
 
     const { picture, ...data } = foundUser;
-    if (picture.filePath) {
-      const avatarFileData = await readFile(picture.filePath, {
-        encoding: 'base64',
-      });
-      const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
-      return res.status(200).json({ user: { ...data, avatar } });
+
+    if (existsSync(picture.filePath)) {
+      if (picture.filePath) {
+        const avatarFileData = await readFile(picture.filePath, {
+          encoding: 'base64',
+        });
+        const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
+        return res.status(200).json({ user: { ...data, avatar } });
+      }
     }
     return res.status(200).json({ user: { ...data, avatar: '' } });
   }
@@ -80,7 +83,7 @@ export default class UserController {
         `${storePath}/${ramdom_id}.${fileExtension}`
       );
 
-      if (!fsSync.existsSync(path.join(__dirname, '..', storePath))) {
+      if (!existsSync(path.join(__dirname, '..', storePath))) {
         await mkdir(path.join(__dirname, '..', storePath), {
           recursive: true,
         });
@@ -107,14 +110,16 @@ export default class UserController {
     )
       .select('-password -recovery_key')
       .lean();
-    const { picture, ...updatedData } = updatedUserData;
 
-    if (picture.filePath) {
-      const avatarFileData = await readFile(picture.filePath, {
-        encoding: 'base64',
-      });
-      const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
-      return res.status(200).json({ user: { ...updatedData, avatar } });
+    const { picture, ...updatedData } = updatedUserData;
+    if (existsSync(picture.filePath)) {
+      if (picture.filePath) {
+        const avatarFileData = await readFile(picture.filePath, {
+          encoding: 'base64',
+        });
+        const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
+        return res.status(200).json({ user: { ...updatedData, avatar } });
+      }
     }
     return res.status(200).json({ user: { ...updatedData, avatar: '' } });
   }
