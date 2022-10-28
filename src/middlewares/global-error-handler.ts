@@ -7,6 +7,7 @@ import AppError from '../error/base-error';
 import genericErrorHandler from '../error/generic-error-handler';
 import { config } from 'dotenv';
 import { eventLogger } from './logger';
+import { JsonWebTokenError } from 'jsonwebtoken';
 
 // loads environment variables
 config();
@@ -36,6 +37,20 @@ export default function globalErrorHandler(
       });
     }
   }
+
+  if (error.name === 'PayloadTooLargeError')
+    return res.status(413).json({
+      status: 'PayloadTooLargeError',
+      code: 413,
+      message: 'The profile image choosen is too large',
+    });
+
+  if (error instanceof JsonWebTokenError)
+    return res.status(401).json({
+      status: 'Authorization Error',
+      code: 401,
+      message: 'Unauthorized: invalid token.',
+    });
 
   if (error.name == 'ValidationError') {
     const errorMessage = Object.values((error as any).errors)

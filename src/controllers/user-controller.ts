@@ -47,31 +47,38 @@ export default class UserController {
     res.status(201).json({ userKey: recovery_key });
   }
 
-  async updateUser(req: IReq, res: IRes): Promise<void> {
-    var { password, user: userId, ...data } = req.body;
+  async updateUser(
+    req: IReq,
+    res: IRes
+  ): Promise<IRes<any, Record<string, any>>> {
+    var { password, user: userId, avatar, ...data } = req.body;
     // check if user exists
     const isUser = await UserModel.exists({ _id: userId }).lean();
     if (!isUser) throw new AppError('User not found', 404);
-
+    
+    if (avatar) {
+    
+    }
+    
     if (password) {
       if (String(password).length < 6)
         throw new AppError('Password must have at least 6 characters', 400);
-
       const salt = await bcrypt.genSalt(10);
       password = await bcrypt.hash(password, salt);
-      await UserModel.updateOne(
+      const updatedData = await UserModel.findOneAndUpdate(
         { _id: userId },
         { ...data, password },
-        { runValidators: true }
-      ).lean();
-    } else {
-      await UserModel.updateOne(
-        { _id: userId },
-        { ...data },
-        { runValidators: true }
-      ).lean();
+        { runValidators: true, new: true }
+      ).select('-password -recovery_key');
+      return res.status(200).json({ user: updatedData });
     }
-    res.sendStatus(200);
+
+    const updatedData = await UserModel.findOneAndUpdate(
+      { _id: userId },
+      { ...data },
+      { runValidators: true, new: true }
+    ).select('-password -recovery_key');
+    return res.status(200).json({ user: updatedData });
   }
 
   async deleteUser(req: IReq, res: IRes): Promise<void> {

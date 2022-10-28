@@ -13,7 +13,6 @@ import { logger } from './middlewares/logger';
 import { error404Route } from './routes/not-found';
 import { userRoutes } from './routes/users';
 import socketService from './services/socket';
-import authenticate from './middlewares/auth-middleware';
 import { messageRoutes } from './routes/messages';
 import { chatRoutes } from './routes/chats';
 import { authRoutes } from './routes/auth';
@@ -33,7 +32,7 @@ const io = new Server(httpServer, {
 app.use(cors(corsOptions));
 app.use(rateLimiter);
 app.use(helmet());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 app.use(logger);
 
@@ -44,7 +43,7 @@ app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/chats', chatRoutes);
 
 //socket server functions
-socketService(io)
+socketService(io);
 
 // errors
 app.use(error404Route);

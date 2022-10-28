@@ -8,11 +8,13 @@ const controller = new UserController();
 
 router
   .route('/')
-  .get(authenticate, asyncWrapper(controller.getAllUsers))
+  .get(authenticate, asyncWrapper(controller.getUser))
   .post(asyncWrapper(controller.createUser))
   .patch(authenticate, asyncWrapper(controller.updateUser))
   .delete(authenticate, asyncWrapper(controller.deleteUser));
 
-router.route('/:id').get(authenticate, asyncWrapper(controller.getUser));
+router
+  .route('/friends')
+  .get(authenticate, asyncWrapper(controller.getAllUsers));
 
 export { router as userRoutes };

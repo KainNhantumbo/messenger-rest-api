@@ -28,12 +28,12 @@ export default class authController {
     const accessToken = await createToken(
       user_id,
       process.env.ACCESS_TOKEN || '',
-      '20s'
+      '10m'
     );
     const refreshToken = await createToken(
       user_id,
       process.env.REFRESH_TOKEN || '',
-      '60s'
+      '14d'
     );
 
     res
@@ -42,7 +42,7 @@ export default class authController {
         httpOnly: true,
         secure: PROD_ENV && true,
         sameSite: 'strict',
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expires: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
       })
       .json({ token: accessToken, userId: user_id });
   }
@@ -57,14 +57,14 @@ export default class authController {
     );
 
     if (!decodedPayload) throw new AppError('Forbidden.', 403);
-    const user = await UserModel.findOne({ _id: decodedPayload.user_id });
+    const user: any = await UserModel.findOne({ _id: decodedPayload.user_id });
     if (!user) throw new AppError('Unauthorized: invalid token.', 401);
     const accessToken = await createToken(
-      user._id as unknown as string,
+      user._id,
       process.env.ACCESS_TOKEN || '',
-      '20s'
+      '10m'
     );
-    res.status(200).json({ accessToken });
+    res.status(200).json({ token: accessToken, userId: user._id });
   }
 
   logout(req: IReq, res: IRes): IRes<any, Record<string, any>> | undefined {
