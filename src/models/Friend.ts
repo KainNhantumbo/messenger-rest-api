@@ -2,7 +2,7 @@ import { Schema, model } from 'mongoose';
 
 const friendSchema = new Schema(
   {
-    belongsTo: {
+    user: {
       type: Schema.Types.ObjectId,
       ref: 'User',
     },

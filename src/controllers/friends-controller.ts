@@ -8,17 +8,33 @@ export default class FriendsController {
     const friendId = req.params.id;
     const foundFriend = await FriendModel.findOne({
       _id: friendId,
-      belongsTo: userId,
+      user: userId,
     }).lean();
     if (!foundFriend) throw new AppError('Friend not found.', 404);
     res.status(200).json({ foundFriend });
   }
+
   async getAllFriends(req: IReq, res: IRes) {
     const userId = req.body.user;
-    const foundFriends = await FriendModel.find({ belongsTo: userId });
+    const foundFriends = await FriendModel.find({ user: userId }).lean();
     res.status(200).json({ foundFriends });
   }
 
-  async createFriend(req: IReq, res: IRes) {}
-  async deleteFriend(req: IReq, res: IRes) {}
+  async createFriend(req: IReq, res: IRes) {
+    const { friend, user: userId } = req.body;
+    await FriendModel.create({
+      user: userId,
+      friend,
+    });
+    res.sendStatus(201);
+  }
+
+  async deleteFriend(req: IReq, res: IRes) {
+    const { friend, user: userId } = req.body;
+    await FriendModel.deleteOne({
+      user: userId,
+      friend,
+    }).lean();
+    res.sendStatus(204);
+  }
 }
