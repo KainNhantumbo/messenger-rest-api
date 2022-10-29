@@ -14,5 +14,5 @@ const friendSchema = new Schema(
   { timestamps: true }
 );
 
-const friendModel = model('Friend', friendSchema);
-export default friendModel;
+const FriendModel = model('Friend', friendSchema);
+export default FriendModel;
