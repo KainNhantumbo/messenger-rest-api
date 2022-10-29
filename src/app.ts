@@ -16,6 +16,7 @@ import { userRoutes } from './routes/users';
 import { messageRoutes } from './routes/messages';
 import { chatRoutes } from './routes/chats';
 import { authRoutes } from './routes/auth';
+import { friendRoutes } from './routes/friends';
 
 //server configuration
 config(); // loads environment variables
@@ -39,6 +40,7 @@ app.use(logger);
 // routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/friends', friendRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/chats', chatRoutes);
 

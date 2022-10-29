@@ -12,7 +12,8 @@ export default class UserController {
   async getUser(req: IReq, res: IRes): Promise<IRes<any, Record<string, any>>> {
     const userId = req.body.user;
     const foundUser = await UserModel.findOne({ _id: userId })
-      .select('-password -recovery_key').populate('friends')
+      .select('-password -recovery_key')
+      .populate('friends')
       .lean();
 
     if (!foundUser) throw new AppError('User not found.', 404);
@@ -23,9 +24,9 @@ export default class UserController {
         encoding: 'base64',
       });
       const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
-      return res.status(200).json({ user: { ...data, avatar } });
+      return res.status(200).json({ ...data, avatar });
     }
-    return res.status(200).json({ user: { ...data, avatar: '' } });
+    return res.status(200).json({ ...data, avatar: '' });
   }
 
   async getAllUsers(req: IReq, res: IRes): Promise<void> {
@@ -142,11 +143,6 @@ export default class UserController {
         extension: fileExtension,
         filePath: fileWithPath,
       };
-    }
-
-    if(friend) {
-      const user = await UserModel.findOne({_id: userId}).populate('friends')
-
     }
 
     if (password) {

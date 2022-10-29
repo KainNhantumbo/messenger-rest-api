@@ -1,6 +1,11 @@
 import { Schema, model } from 'mongoose';
 
-const friendSchema = new Schema(
+interface IFriend {
+  user: Schema.Types.ObjectId;
+  friend: Schema.Types.ObjectId;
+}
+
+const friendSchema = new Schema<IFriend>(
   {
     user: {
       type: Schema.Types.ObjectId,
@@ -9,6 +14,7 @@ const friendSchema = new Schema(
     friend: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      unique: true,
     },
   },
   { timestamps: true }
