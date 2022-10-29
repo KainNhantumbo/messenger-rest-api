@@ -14,7 +14,7 @@ router
   .delete(authenticate, asyncWrapper(controller.deleteUser));
 
 router
-  .route('/friends')
+  .route('/all')
   .get(authenticate, asyncWrapper(controller.getAllUsers));
 
 export { router as userRoutes };

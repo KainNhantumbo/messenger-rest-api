@@ -1,18 +1,18 @@
 import AppError from '../error/base-error';
 import UserModel from '../models/User';
+import path from 'path';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidV4 } from 'uuid';
-import { Request as IReq, Response as IRes } from 'express';
-import path from 'path';
-import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { UserData } from '../@types/interfaces';
+import { Request as IReq, Response as IRes } from 'express';
 import { existsSync, readFileSync } from 'fs';
+import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 
 export default class UserController {
   async getUser(req: IReq, res: IRes): Promise<IRes<any, Record<string, any>>> {
     const userId = req.body.user;
     const foundUser = await UserModel.findOne({ _id: userId })
-      .select('-password -recovery_key')
+      .select('-password -recovery_key').populate('friends')
       .lean();
 
     if (!foundUser) throw new AppError('User not found.', 404);
@@ -30,6 +30,7 @@ export default class UserController {
 
   async getAllUsers(req: IReq, res: IRes): Promise<void> {
     const { sort, search, fields, offset, limit } = req.query;
+    const userId = req.body.user;
     const queryParams: any = {};
 
     if (search) {
@@ -42,7 +43,6 @@ export default class UserController {
     }
 
     let queryResult = UserModel.find(queryParams);
-
     if (fields) {
       let fieldsString = String(fields);
       if (fieldsString.includes('avatar')) {
@@ -65,8 +65,11 @@ export default class UserController {
       queryResult.skip(Number(offset)).limit(Number(limit));
     }
 
-    const foundUsers = await queryResult.lean();
+    const foundUsers = (await queryResult.lean()).filter(
+      (user) => user._id != userId
+    );
     const users: any = foundUsers.map((user) => {
+      if (user._id == userId) return;
       if (user.picture && existsSync(user.picture?.filePath)) {
         const avatarFileData = readFileSync(user.picture.filePath, {
           encoding: 'base64',
@@ -112,7 +115,7 @@ export default class UserController {
     req: IReq,
     res: IRes
   ): Promise<IRes<any, Record<string, any>>> {
-    var { password, user: userId, avatar, ...data } = req.body;
+    var { password, user: userId, avatar, friend, ...data } = req.body;
     // check if user exists
     const isUser = await UserModel.exists({ _id: userId }).lean();
     if (!isUser) throw new AppError('User not found', 404);
@@ -139,6 +142,11 @@ export default class UserController {
         extension: fileExtension,
         filePath: fileWithPath,
       };
+    }
+
+    if(friend) {
+      const user = await UserModel.findOne({_id: userId}).populate('friends')
+
     }
 
     if (password) {
