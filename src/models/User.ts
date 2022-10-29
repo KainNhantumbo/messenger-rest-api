@@ -10,7 +10,7 @@ interface IUser {
   picture: { id: string; extension: string; filePath: string };
   password: string;
   recovery_key: string;
-  friends: Schema.Types.ObjectId;
+  friends: Schema.Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
