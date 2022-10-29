@@ -161,14 +161,12 @@ export default class UserController {
       .lean();
 
     const { picture, ...updatedData } = updatedUserData;
-    if (existsSync(picture.filePath)) {
-      if (picture.filePath) {
-        const avatarFileData = await readFile(picture.filePath, {
-          encoding: 'base64',
-        });
-        const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
-        return res.status(200).json({ user: { ...updatedData, avatar } });
-      }
+    if (picture?.filePath && existsSync(picture?.filePath)) {
+      const avatarFileData = await readFile(picture.filePath, {
+        encoding: 'base64',
+      });
+      const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
+      return res.status(200).json({ user: { ...updatedData, avatar } });
     }
     return res.status(200).json({ user: { ...updatedData, avatar: '' } });
   }
@@ -191,8 +189,10 @@ export default class UserController {
     });
     if (!deletedUser) throw new AppError('Unable to process your request', 202);
     // remove user profile picture from  disk
-    await rm(deletedUser.picture.filePath);
-
+    const { picture } = deletedUser;
+    if (picture?.filePath && existsSync(picture?.filePath)) {
+      await rm(deletedUser.picture.filePath);
+    }
     res.sendStatus(200);
   }
 }
