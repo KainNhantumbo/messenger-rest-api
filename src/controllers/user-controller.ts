@@ -70,7 +70,6 @@ export default class UserController {
       (user) => user._id != userId
     );
     const users: any = foundUsers.map((user) => {
-      if (user._id == userId) return;
       if (user.picture && existsSync(user.picture?.filePath)) {
         const avatarFileData = readFileSync(user.picture.filePath, {
           encoding: 'base64',
@@ -166,9 +165,9 @@ export default class UserController {
         encoding: 'base64',
       });
       const avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
-      return res.status(200).json({ user: { ...updatedData, avatar } });
+      return res.status(200).json({ ...updatedData, avatar });
     }
-    return res.status(200).json({ user: { ...updatedData, avatar: '' } });
+    return res.status(200).json({ ...updatedData, avatar: '' });
   }
 
   async deleteUser(req: IReq, res: IRes): Promise<void> {

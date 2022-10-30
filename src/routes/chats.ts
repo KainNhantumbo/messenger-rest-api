@@ -9,8 +9,9 @@ const controller = new ChatController();
 router
   .route('/')
   .get(authenticate, asyncWrapper(controller.getAllChats))
-  .post(authenticate, asyncWrapper(controller.createChat));
+  .post(authenticate, asyncWrapper(controller.createChat)).delete(authenticate, asyncWrapper(controller.deleteChat))
 
 router.route('/:id').get(authenticate, asyncWrapper(controller.getChat));
+
 
 export { router as chatRoutes };

@@ -9,6 +9,7 @@ const controller = new MessegesController();
 router
   .route('/')
   .get(authenticate, asyncWrapper(controller.getAllMessages))
+  .post(authenticate, asyncWrapper(controller.createMessage))
   .delete(authenticate, asyncWrapper(controller.deleteAllMessages));
 
 router

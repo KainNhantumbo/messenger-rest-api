@@ -1,11 +1,15 @@
 import MessageModel from '../models/Message';
 import AppError from '../error/base-error';
 import { Response as IRes, Request as IReq } from 'express';
+
 export default class MessegesController {
   async getAllMessages(req: IReq, res: IRes): Promise<void> {
     const userId = req.body.user;
-    const messages = await MessageModel.find({ author: userId }).lean();
-    res.status(200).json({ messages });
+    const messages = await MessageModel.find({ author: userId })
+      .select('-updatedAt')
+      .sort('createdAt')
+      .lean();
+    res.status(200).json({ ...messages });
   }
 
   async getMessage(req: IReq, res: IRes): Promise<void> {
@@ -14,19 +18,17 @@ export default class MessegesController {
     const message = await MessageModel.findOne({
       author: userId,
       _id: messageId,
-    }).lean();
+    })
+      .select('-updatedAt')
+      .lean();
     if (!message) throw new AppError('Message not found', 404);
-    res.status(200).json({ message });
+    res.status(200).json({ ...message });
   }
 
   async createMessage(req: IReq, res: IRes): Promise<void> {
-    try {
-      const userId = req.body.user;
-      const data = req.body;
-      await MessageModel.create({ author: userId, ...data });
-    } catch (err) {
-      console.error(err);
-    }
+    const { user: userId, ...data } = req.body;
+    await MessageModel.create({ author: userId, ...data });
+    res.sendStatus(201);
   }
 
   async deleteMessage(req: IReq, res: IRes): Promise<void> {

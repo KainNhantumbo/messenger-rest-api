@@ -2,18 +2,17 @@ import { Schema, model } from 'mongoose';
 
 interface IMessage {
   author: Schema.Types.ObjectId;
-  chatId: Schema.Types.ObjectId;
+  chatId: string;
   content: string;
   file: { id: string; extension: string; filePath: string };
 }
 
 const messageSchema = new Schema<IMessage>(
   {
-    chatId: { type: Schema.Types.ObjectId, ref: 'Chat' },
+    chatId: { type: String, required: true },
     author: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
     },
     content: {
       type: String,
