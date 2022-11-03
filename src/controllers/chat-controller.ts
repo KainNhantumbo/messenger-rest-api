@@ -14,7 +14,8 @@ export default class ChatController {
     const foundChat = await ChatModel.findOne({ _id: chatId }).lean();
 
     if (!foundChat) throw new AppError('Chat not found', 404);
-    const messages = await MessageModel.find({ chatId: foundChat._id });
+    const messages = await MessageModel.find({ chatId }).lean();
+
     const [friendId] = [foundChat.author, foundChat.friend].filter(
       (id) => id != userId
     );
@@ -34,7 +35,9 @@ export default class ChatController {
       };
       return res.status(200).json({ ...foundChat, messages, friend: data });
     }
-    return res.status(200).json({ ...data, messages, avatar: '' });
+    res
+      .status(200)
+      .json({ ...data, messages, friend: { ...data, avatar: '' } });
   }
 
   async getAllChats(req: IReq, res: IRes) {
@@ -49,7 +52,7 @@ export default class ChatController {
       const [friendId] = [chat.author, chat.friend].filter(
         (id) => id != userId
       );
-      const message = (await MessageModel.find({ chatId: chat._id }).lean())
+      const message: any = (await MessageModel.find({ chatId: chat._id }).lean())
         .sort((a: any, b: any) => (a.createdAt > b.createdAt ? 1 : -1))
         .pop();
       const foundUser = await UserModel.findOne({ _id: friendId })
@@ -81,10 +84,11 @@ export default class ChatController {
     const dataArr: any = [];
     await Promise.allSettled(foundChats.map(transformChats)).then(
       (result: any) => {
-        dataArr.push(result[0].value);
+        result.forEach((element: any) => {
+          dataArr.push(element.value);
+        });
       }
     );
-
     res.status(200).json(dataArr);
   }
 

@@ -117,7 +117,7 @@ export default class UserController {
   ): Promise<IRes<any, Record<string, any>>> {
     var { password, user: userId, avatar, friend, ...data } = req.body;
     // check if user exists
-    const isUser = await UserModel.exists({ _id: userId }).lean();
+    const isUser = await UserModel.findOne({ _id: userId }).lean();
     if (!isUser) throw new AppError('User not found', 404);
 
     if (avatar) {
@@ -130,7 +130,10 @@ export default class UserController {
         '..',
         `${storePath}/${ramdom_id}.${fileExtension}`
       );
-
+      const { picture } = isUser;
+      if (picture.filePath && existsSync(picture.filePath)) {
+        await rm(picture.filePath);
+      }
       if (!existsSync(path.join(__dirname, '..', storePath))) {
         await mkdir(path.join(__dirname, '..', storePath), {
           recursive: true,
