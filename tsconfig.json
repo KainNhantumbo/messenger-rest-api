@@ -3,10 +3,10 @@
     "incremental": true,
     "target": "es2016",
     "module": "commonjs",
-    "rootDir": "./src", 
-    "moduleResolution": "node",  
+    "rootDir": "./src",
+    "moduleResolution": "node",
     "outDir": "./dist",
-    "removeComments": true, 
+    "removeComments": true,
     "noEmit": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -15,5 +15,5 @@
     "strict": true,
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
-  },
+  }
 }

@@ -32,8 +32,7 @@ export default function globalErrorHandler(
       return res.status(409).json({
         status: 'Conflict Error',
         code: 409,
-        message:
-          'This e-mail is already used by another account. Try another one.',
+        message: 'This e-mail is already used by another account.',
       });
     }
   }

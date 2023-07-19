@@ -60,7 +60,7 @@ const UserSchema = new Schema<IUser>(
     ],
     password: {
       type: String,
-      minlength: [6, 'The password must have at least 6 charaters'],
+      minlength: [6, 'The password must have at least 6 characters'],
       required: [true, 'Please provide a password'],
     },
     recovery_key: {

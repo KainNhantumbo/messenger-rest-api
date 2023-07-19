@@ -1,9 +1,9 @@
-import * as bcrypt from 'bcrypt';
-import { Request as IReq, Response as IRes } from 'express';
-import { createToken, verifyToken } from '../utils/jwt-helpers';
-import AppError from '../error/base-error';
 import UserModel from '../models/User';
+import AppError from '../error/base-error';
+import * as bcrypt from 'bcrypt';
 import { config } from 'dotenv';
+import { createToken, verifyToken } from '../utils/jwt-helpers';
+import { Request as IReq, Response as IRes } from 'express';
 
 config(); // loads environment variables
 export default class authController {
