@@ -14,7 +14,6 @@ const friendSchema = new Schema<IFriend>(
     friend: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      unique: true,
     },
   },
   { timestamps: true }

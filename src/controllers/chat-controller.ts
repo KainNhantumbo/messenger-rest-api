@@ -1,11 +1,11 @@
 import User from '../models/User';
-import Chat, { TChat } from '../models/Chat';
 import { existsSync } from 'node:fs';
 import Message from '../models/Message';
 import AppError from '../error/base-error';
 import { readFile } from 'node:fs/promises';
-import { Response as IRes, Request as IReq } from 'express';
+import Chat, { TChat } from '../models/Chat';
 import { LeanDocument, Types } from 'mongoose';
+import { Response as IRes, Request as IReq } from 'express';
 
 type TDerivedChat = LeanDocument<
   TChat & {
