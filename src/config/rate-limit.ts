@@ -1,5 +1,5 @@
 import { rateLimit, RateLimitRequestHandler } from 'express-rate-limit';
-import { eventLogger } from '../middlewares/logger';
+import { eventLogger } from '../middlewares/event-logger';
 
 const rateLimiter: RateLimitRequestHandler = rateLimit({
   windowMs: 1 * 60 * 1000,
