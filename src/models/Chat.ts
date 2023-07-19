@@ -1,11 +1,11 @@
 import { Schema, model } from 'mongoose';
 
-interface IChat {
+export type TChat = {
   author: Schema.Types.ObjectId;
   friend: Schema.Types.ObjectId;
 }
 
-const chatSchema = new Schema<IChat>(
+const chatSchema = new Schema<TChat>(
   {
     author: {
       type: Schema.Types.ObjectId,

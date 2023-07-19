@@ -1,26 +1,33 @@
-import ChatModel from '../models/Chat';
+import User from '../models/User';
+import Chat, { TChat } from '../models/Chat';
+import { existsSync } from 'node:fs';
+import Message from '../models/Message';
 import AppError from '../error/base-error';
+import { readFile } from 'node:fs/promises';
 import { Response as IRes, Request as IReq } from 'express';
-import { existsSync } from 'fs';
-import { readFile } from 'fs/promises';
-import UserModel from '../models/User';
-import MessageModel from '../models/Message';
+import { LeanDocument, Types } from 'mongoose';
+
+type TDerivedChat = LeanDocument<
+  TChat & {
+    _id: Types.ObjectId;
+  }
+>;
 
 export default class ChatController {
-  async getChat(req: IReq, res: IRes) {
+  async getChat(req: IReq, res: IRes): Promise<void> {
     const chatId = req.params.id;
     const userId = req.body.user;
     if (!chatId) throw new AppError('Chat ID must be provided.', 400);
-    const foundChat = await ChatModel.findOne({ _id: chatId }).lean();
+    const foundChat = await Chat.findOne({ _id: chatId }).lean();
 
     if (!foundChat) throw new AppError('Chat not found', 404);
-    const messages = await MessageModel.find({ chatId }).lean();
+    const messages = await Message.find({ chatId }).lean();
 
     const [friendId] = [foundChat.author, foundChat.friend].filter(
       (id) => id != userId
     );
 
-    const foundUser = await UserModel.findOne({ _id: friendId })
+    const foundUser = await User.findOne({ _id: friendId })
       .select('user_name email picture')
       .lean();
     if (!foundUser) throw new AppError('User not found.', 404);
@@ -33,97 +40,102 @@ export default class ChatController {
         ...data,
         avatar: `data:image/${picture.extension};base64,${avatarFileData}`,
       };
-      return res.status(200).json({ ...foundChat, messages, friend: data });
+      res.status(200).json({ ...foundChat, messages, friend: data });
+      return;
     }
     res
       .status(200)
       .json({ ...data, messages, friend: { ...data, avatar: '' } });
   }
 
-  async getAllChats(req: IReq, res: IRes) {
+  async getAllChats(req: IReq, res: IRes): Promise<void> {
     const userId = req.body.user;
-    const foundChats = await ChatModel.find({
+    const foundChats = await Chat.find({
       $or: [{ author: userId }, { friend: userId }],
     }).lean();
 
-    if (foundChats.length === 0) return res.status(200).json(foundChats);
+    if (foundChats.length === 0) {
+      res.status(200).json([]);
+    } else {
+      const transformChats = async (chat: TDerivedChat) => {
+        const [friendId] = [chat.author, chat.friend].filter(
+          (id) => id != userId
+        );
+        const foundMessage = await Message.find({ chatId: chat._id })
+          .sort({ createdAt: 'desc' })
+          .lean();
 
-    const transformChats = async (chat: any) => {
-      const [friendId] = [chat.author, chat.friend].filter(
-        (id) => id != userId
-      );
-      const message: any = (await MessageModel.find({ chatId: chat._id }).lean())
-        .sort((a: any, b: any) => (a.createdAt > b.createdAt ? 1 : -1))
-        .pop();
-      const foundUser = await UserModel.findOne({ _id: friendId })
-        .select('user_name picture')
-        .lean();
-      if (!foundUser) throw new AppError('User not found.', 404);
-      const { picture } = foundUser;
-      if (picture?.filePath && existsSync(picture?.filePath)) {
-        const avatarFileData = await readFile(picture.filePath, {
-          encoding: 'base64',
-        });
+        const foundUser = await User.findOne({ _id: friendId })
+          .select('user_name picture')
+          .lean();
 
-        return {
-          _id: chat._id,
-          user_name: foundUser.user_name,
-          message,
-          avatar: `data:image/${picture.extension};base64,${avatarFileData}`,
-          createdAt: (chat as any).createdAt,
-        };
-      }
-      return {
-        _id: chat._id,
-        user_name: foundUser.user_name,
-        message,
-        avatar: '',
-        createdAt: (chat as any).createdAt,
+        if (!foundUser) {
+          res.status(200).json({
+            _id: chat._id,
+            user_name: '[ DELETED ACCOUNT ]',
+            message: foundMessage,
+            avatar: '',
+            createdAt: (chat as any).createdAt,
+          });
+        } else {
+          const { picture } = foundUser;
+          let data = {
+            _id: chat._id,
+            user_name: foundUser.user_name,
+            message: foundMessage,
+            avatar: '',
+            createdAt: (chat as any).createdAt,
+          };
+
+          if (picture.filePath && existsSync(picture.filePath)) {
+            const avatarFileData = await readFile(picture.filePath, {
+              encoding: 'base64',
+            });
+            data.avatar = `data:image/${picture.extension};base64,${avatarFileData}`;
+            return data;
+          }
+          return data;
+        }
+        const data: any[] = [];
+        await Promise.allSettled(foundChats.map(transformChats)).then(
+          (result: PromiseSettledResult<any>[]) => {
+            result.forEach((element) => {
+              data.push((element as any).value);
+            });
+          }
+        );
+        res.status(200).json(data);
       };
-    };
-    const dataArr: any = [];
-    await Promise.allSettled(foundChats.map(transformChats)).then(
-      (result: any) => {
-        result.forEach((element: any) => {
-          dataArr.push(element.value);
-        });
-      }
-    );
-    res.status(200).json(dataArr);
+    }
   }
 
-  async createChat(
-    req: IReq,
-    res: IRes
-  ): Promise<IRes<any, Record<string, any>> | undefined> {
+  async createChat(req: IReq, res: IRes): Promise<void> {
     const { sender: senderId, receiver: receiverId } = req.body;
-    // check for duplicates
-    const existingChat = await ChatModel.findOne({
+    const foundChat = await Chat.findOne({
       $or: [
         { author: senderId, friend: receiverId },
         { author: receiverId, friend: senderId },
       ],
     }).lean();
 
-    if (existingChat !== null) {
-      const messages = await MessageModel.find({ chatId: existingChat._id });
-      return res.status(200).json({ ...existingChat, messages });
+    if (foundChat) {
+      const messages = await Message.find({ chatId: foundChat._id });
+      res.status(200).json({ ...foundChat, messages });
+    } else {
+      const createdChat = await Chat.create({
+        author: senderId,
+        friend: receiverId,
+      });
+      res.status(201).json({ ...createdChat });
     }
-
-    const createdChat = await ChatModel.create({
-      author: senderId,
-      friend: receiverId,
-    });
-    res.status(201).json({ ...createdChat });
   }
 
   async deleteChat(req: IReq, res: IRes): Promise<void> {
-    // const chatId = req.params.id;
-    // const deletedChat = await ChatModel.deleteOne({ _id: chatId })
-    //   .populate('messages')
-    //   .deleteMany({});
-    // code
-    await ChatModel.deleteMany({});
+    const chatId = req.params.id;
+    const deletedChat = await Chat.findOneAndDelete({ _id: chatId });
+    if (deletedChat) {
+      await Message.deleteMany({ chatId: deletedChat._id });
+    }
     res.sendStatus(204);
   }
 }

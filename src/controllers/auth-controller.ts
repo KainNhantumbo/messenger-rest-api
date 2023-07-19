@@ -1,11 +1,9 @@
-import UserModel from '../models/User';
-import AppError from '../error/base-error';
 import * as bcrypt from 'bcrypt';
-import { config } from 'dotenv';
-import { createToken, verifyToken } from '../utils/jwt-helpers';
+import User from '../models/User';
+import AppError from '../error/base-error';
 import { Request as IReq, Response as IRes } from 'express';
+import { createToken, verifyToken } from '../utils/jwt-helpers';
 
-config(); // loads environment variables
 export default class authController {
   async login(req: IReq, res: IRes): Promise<void> {
     const PROD_ENV = process.env.NODE_ENV === 'development' ? true : false;
@@ -13,7 +11,7 @@ export default class authController {
     if (!password || !email)
       throw new AppError('Please provide your e-mail and password.', 400);
 
-    const user = await UserModel.findOne({ email: email });
+    const user = await User.findOne({ email: email });
     if (!user)
       throw new AppError(
         'Account not found. Please check your e-mail and try again.',
@@ -57,7 +55,7 @@ export default class authController {
     );
 
     if (!decodedPayload) throw new AppError('Forbidden.', 403);
-    const user: any = await UserModel.findOne({ _id: decodedPayload.user_id });
+    const user: any = await User.findOne({ _id: decodedPayload.user_id });
     if (!user) throw new AppError('Unauthorized: invalid token.', 401);
     const accessToken = await createToken(
       user._id,
