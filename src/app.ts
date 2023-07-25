@@ -2,6 +2,7 @@ import cors from 'cors';
 import http from 'http';
 import helmet from 'helmet';
 import * as dotenv from 'dotenv';
+import compression from 'compression'
 import cookieParser from 'cookie-parser';
 import Bootstrap from './modules/server';
 import SocketServer from './modules/socket';
@@ -15,7 +16,6 @@ import { messageRoutes } from './routes/messages';
 import { error404Route } from './routes/not-found';
 import { corsOptions } from './config/cors-options';
 import { globalErrorHandler } from './middlewares/global-error-handler';
-
 //server configuration
 dotenv.config(); // loads environment variables
 const PORT = process.env.PORT || 5200;
@@ -27,6 +27,7 @@ const httpServer = http.createServer(app);
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(rateLimiter);
+app.use(compression())
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 

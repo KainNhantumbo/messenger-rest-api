@@ -3,7 +3,6 @@ import * as bcrypt from 'bcrypt';
 import User from '../models/User';
 import { randomUUID } from 'node:crypto';
 import AppError from '../error/base-error';
-import { UserData } from '../@types/interfaces';
 import { existsSync, readFileSync } from 'node:fs';
 import { Request as IReq, Response as IRes } from 'express';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -141,7 +140,7 @@ export default class UserController {
       data.password = await bcrypt.hash(password, salt);
     }
 
-    const updatedUserData: UserData = await User.findOneAndUpdate(
+    const updatedUserData = await User.findOneAndUpdate(
       { _id: userId },
       { ...data },
       { runValidators: true, new: true }
@@ -149,6 +148,7 @@ export default class UserController {
       .select('-password -recovery_key')
       .lean();
 
+    if (!updatedUserData) throw new AppError('Update operation failed', 400);
     const { picture, ...updatedData } = updatedUserData;
     const user_data = { ...updatedData, avatar: '' };
     if (picture?.filePath && existsSync(picture?.filePath)) {

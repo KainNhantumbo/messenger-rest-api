@@ -1,6 +1,6 @@
 import { CorsOptions } from 'cors';
 
-const corsDomains: string[] = ['http://localhost:3000', 'http://localhost:3001'];
+const corsDomains: string[] = process.env?.ALLOWED_DOMAINS?.split(',') || [];
 
 const corsOptions: CorsOptions = {
   origin: corsDomains,

@@ -4,14 +4,10 @@ import Message from '../models/Message';
 import AppError from '../error/base-error';
 import { readFile } from 'node:fs/promises';
 import Chat, { TChat } from '../models/Chat';
-import { LeanDocument, Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Response as IRes, Request as IReq } from 'express';
 
-type TDerivedChat = LeanDocument<
-  TChat & {
-    _id: Types.ObjectId;
-  }
->;
+type TDerivedChat = any
 
 export default class ChatController {
   async getChat(req: IReq, res: IRes): Promise<void> {
