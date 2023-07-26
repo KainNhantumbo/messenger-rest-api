@@ -4,7 +4,6 @@ import Message from '../models/Message';
 import AppError from '../error/base-error';
 import { readFile } from 'node:fs/promises';
 import Chat, { TChat } from '../models/Chat';
-import { Document, Types } from 'mongoose';
 import { Response as IRes, Request as IReq } from 'express';
 
 type TDerivedChat = any

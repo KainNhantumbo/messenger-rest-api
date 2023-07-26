@@ -1,4 +1,7 @@
 import { CorsOptions } from 'cors';
+import * as dotenv from 'dotenv'
+
+dotenv.config()
 
 const corsDomains: string[] = process.env?.ALLOWED_DOMAINS?.split(',') || [];
 

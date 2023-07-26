@@ -98,7 +98,7 @@ export default class UserController {
       ramdomId[ramdomId.length - 1]
     }`;
     await User.create({ password, email, recovery_key, ...data });
-    res.status(201).json({ userKey: recovery_key });
+    res.status(201).json({ code: recovery_key });
   }
 
   async updateUser(req: IReq, res: IRes): Promise<void> {

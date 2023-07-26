@@ -16,6 +16,7 @@ import { messageRoutes } from './routes/messages';
 import { error404Route } from './routes/not-found';
 import { corsOptions } from './config/cors-options';
 import { globalErrorHandler } from './middlewares/global-error-handler';
+
 //server configuration
 dotenv.config(); // loads environment variables
 const PORT = process.env.PORT || 5200;

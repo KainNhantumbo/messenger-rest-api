@@ -1,8 +1,7 @@
-import Chat from '../models/Chat';
-import Message from '../models/Message';
-import { Server as HttpServer } from 'node:http';
 import { Socket, Server } from 'socket.io';
+import ChatService from '../services/chat';
 import { corsDomains } from '../config/cors-options';
+import { Server as HttpServer } from 'node:http';
 
 export default class SocketServer {
   public static instance: SocketServer;
@@ -45,6 +44,11 @@ export default class SocketServer {
     socket.on('send-message', (chatId) => {
       socket.emit('message-received', chatId);
       socket.broadcast.emit('reload-chats', chatId);
+    });
+
+    // chats
+    socket.on('reload-chats', async (userId) => {
+      ChatService.getChats(socket, userId);
     });
 
     /** typings */

@@ -77,6 +77,6 @@ export default class authController {
         secure: PROD_ENV && true,
         sameSite: 'strict',
       })
-      .json({ message: 'Cookie cleared.' });
+      .json({ message: 'Success' });
   }
 }
