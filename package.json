@@ -44,7 +44,7 @@
 		"helmet": "^6.0.0",
 		"jsonwebtoken": "^9.0.0",
 		"mongoose": "^7.4.1",
-		"sharp": "^0.31.1",
+		"sharp": "^0.32.6",
 		"socket.io": "^4.7.5"
 	}
 }
